@@ -1,0 +1,2 @@
+# ReducedToM
+Code fuer Fixpunkte

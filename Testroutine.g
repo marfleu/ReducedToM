@@ -1,7 +1,8 @@
 Read("~/Dokumente/Bachelorarbeit/Fixpunkte.g");
-
+##############################
+#Creates randomly an Ascending Chain in a given group G
 CreateRandomChain:=function(G)
-	local M,r,n;
+	local M,r,n,i;
 	n:=Size(AscendingChain(G,Group(())));
 	n:=Random([1..n]);
 	r:=G;
@@ -16,7 +17,10 @@ CreateRandomChain:=function(G)
 	return AscendingChain(G,r);
 end;;
 
-CreateCollectionOfChains:=function(G, L, n)
+###############################
+#Creates via CreateRandomChain a list of DISTINCT AscendingChains of a given group G
+
+CreateCollectionOfChains:=function(G, L, n) #G is the group; L a list to which we append our Ascending Chains; n is the number of iterations
 local counter, M;
 for counter in [1..n] do
 	M:=CreateRandomChain(G);
@@ -68,6 +72,9 @@ Testate:=function(H,U,G)
 			
 end;;
 
+#####################################
+#Filters the list of AscendingChains groups, for the attributes specified in L
+
 CollectGroupsOfSameType:=function(groups, L)   #L=[log10(Size), Chainlänge, IsTransitive, IsPrimitive], groups=[AscendingChain(G, g1), ...]
 local n,M,G;
 if Size(L) <> 4 then
@@ -81,7 +88,7 @@ if 10^L[1] < Size(G) then
 Append(M,Filtered(Filtered(groups, x-> Order(x[1]) < 10^L[1]) , x-> Order(x[1]) >=10^(L[1]-1)));
 fi; 
 
-if L[2] <= n then
+if L[2] <= n+1 then
 M:=Filtered(Filtered(M, x-> Size(x) <= L[2]+1), x-> Size(x) > L[2]-1);
 fi;
 
@@ -103,23 +110,29 @@ return M;
 
 end;;
 
+##################################
+#Collects groups from a randomly created list of AscendingChain (constructed via CreateCollectionOfChains) and pairs them by their respective #attributes like Order, Size(Chain), transitivity and so on. Then the group will be printed to a readable GAP-file via GroupPrinter. 
+#Method can be adapted for printing into a latex table
 
 CreateOutputForAnalyis:=function(groups, file)  #groups=[AscendingChain(G, g1), ...]  , file : Datei in die die Information geschrieben wird
-local n,M,G,m;
+local n,M,G,m, counter,i,j,k,l;
 M:=[];
 G:=groups[1][Size(groups[1])];
 n:=Size(AscendingChain(G, Group(())));
 m:=Int(Log10(Float(Order(G))));
-
-for i in [1..m] do
-	for j in [1..Int(n/3)] do
+counter:=0;
+for i in [1..m+1] do
+	for j in [1..Int(n/3)+1] do
 		for k in [0,1] do
 			for l in [0,1] do
 				M:=CollectGroupsOfSameType(groups, [i,3*j,k,l]);
+				Print(M);
 				if not M=[] then
 					AppendTo(file, "\n");
 					AppendTo(file, "#######################################");
-					GroupPrinter(M,file);
+					c:=counter;
+					Print(c);
+					counter:=GroupPrinter(M,file, c);
 				fi;
 			od;
 		od;
@@ -127,31 +140,40 @@ for i in [1..m] do
 od;
 end;;
 
-
-GroupPrinter:=function(M, file)
-H:=Group((1,2),(2,3,4));
-
+#####################################
+#Creates a readable gap code for our test groups
+ 
+GroupPrinter:=function(M, file, c) #M Collection of groups, file is the file to which we want to append M, c is a counter to count the 					   #appended files 
+local H, g, counter;
+H:=Group((1,2),(2,3,4));           #H is the acting group for ReducedTable..; has to be adjusted!
+counter:=c;
 for g in M do
 	AppendTo(file, "\n" );
-	AppendTo(file, "Generators: ");
+	AppendTo(file, "A[");     #name A, B, C, ... for different G=Sym(n)
+	AppendTo(file, counter);
+	AppendTo(file, "]:=Group( ");
 	AppendTo(file, GeneratorsOfGroup(g[1]) );
-	AppendTo(file, " Order: ");
+	AppendTo(file, " );");
+	AppendTo(file, " #Order: ");
 	AppendTo(file, Order(g[1]) );
-	AppendTo(file, " Chain: ");
+	AppendTo(file, " #Chain: ");
 	AppendTo(file, Size(g));
-	AppendTo(file, " IsTransitive: ");
+	AppendTo(file, " #IsTransitive: ");
 	AppendTo(file, IsTransitive(g[1]) );
-	AppendTo(file, " IsPrimitive: ");
+	AppendTo(file, " #IsPrimitive: ");
 	AppendTo(file, IsPrimitive(g[1]));
-	AppendTo(file, " Indices: ");
+	AppendTo(file, " #Indices: ");
 	AppendTo(file, List([2..Size(g)], i->Order(g[i])/Order(g[i-1])) );
-	AppendTo(file, " FixTimes/SplitTimes: ");
+	AppendTo(file, " #FixTimes/SplitTimes: ");
 	AppendTo(file, ReducedTableOfMarksTimes(H, g));
 	AppendTo(file, "\n" );
+	counter:=counter+1;
 od;
-
+return counter;
 end;;
 
+###############################
+#Like ReducedTableOfMarks, but takes the times of all important operations and returns them in a list
 
 ReducedTableOfMarksTimes:=function(H,Chain)
 	local n,Fix,Split, FixTimes, SplitTimes,t;
@@ -159,21 +181,26 @@ ReducedTableOfMarksTimes:=function(H,Chain)
 	Fix:=[];
 	FixTimes:=[];
 	SplitTimes:=[];
+	t:=Runtime();
 	if n > 1 then
+	t:=Runtime();
 	Split:=List(RightCosets(Chain[n],Chain[n-1]), x->Representative(x));  #->Split contains now representatives for right cosets of Chain[n-1] 
-	t:=Runtimes();
+	t:=Runtime()-t;
 	Append(SplitTimes,[t]);
 	if n>2 then
 	for i in [2..n-1] do                                              
+	t:=Runtime();	
 	Fix:=FindFixedPointsIn(Split,H,Chain[n+1-i]);
-	t:=Runtimes();
+	t:=Runtime()-t;
 	Append(FixTimes, [t]);
+	t:=Runtime();
 	Split:=SplitCosets(Fix,Chain[n-i],Chain[n+1-i]);    
-	t:=Runtimes();          
+	t:=Runtime()-t;          
 	Append(SplitTimes, [t]);
 	od;
+	t:=Runtime();
 	Fix:=FindFixedPointsIn(Split,H,Chain[1]);
-	t:=Runtimes();
+	t:=Runtime()-t;
 	Append(FixTimes, [t]);
 	fi;															
 	fi;

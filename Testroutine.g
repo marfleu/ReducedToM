@@ -84,12 +84,12 @@ M:=[];
 G:=groups[1][Size(groups[1])];
 n:=Size(AscendingChain(G, Group(())));
 
-if 10^L[1] < Size(G) then
+if 10^L[1] <= Size(G) then
 Append(M,Filtered(Filtered(groups, x-> Order(x[1]) < 10^L[1]) , x-> Order(x[1]) >=10^(L[1]-1)));
 fi; 
 
 if L[2] <= n+1 then
-M:=Filtered(Filtered(M, x-> Size(x) <= L[2]+1), x-> Size(x) > L[2]-1);
+M:=Filtered(Filtered(M, x-> Size(x) <= L[2]+1), x-> Size(x) >= L[2]-1);
 fi;
 
 if L[3]=1 then
@@ -126,12 +126,10 @@ for i in [1..m+1] do
 		for k in [0,1] do
 			for l in [0,1] do
 				M:=CollectGroupsOfSameType(groups, [i,3*j,k,l]);
-				Print(M);
 				if not M=[] then
 					AppendTo(file, "\n");
 					AppendTo(file, "#######################################");
 					c:=counter;
-					Print(c);
 					counter:=GroupPrinter(M,file, c);
 				fi;
 			od;

@@ -115,7 +115,7 @@ end;;
 #Method can be adapted for printing into a latex table
 
 CreateOutputForAnalyis:=function(groups, file)  #groups=[AscendingChain(G, g1), ...]  , file : Datei in die die Information geschrieben wird
-local n,M,G,m, counter,i,j,k,l;
+local n,M,G,m, counter,i,j,k,l, c;
 M:=[];
 G:=groups[1][Size(groups[1])];
 n:=Size(AscendingChain(G, Group(())));

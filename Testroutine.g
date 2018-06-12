@@ -170,6 +170,74 @@ od;
 return counter;
 end;;
 
+####################
+#Similar to GroupPrinter but for the Latex table
+
+GroupPrinter2:=function(M, file)
+local H1,H2,H3, g, counter,L, L1, i, sum;
+counter:=0;
+L1:=[];
+L:=List(M, x->AscendingChain(SymmetricGroup(12), x) );
+for g in L do
+counter:=counter+1;
+	AppendTo(file, "D[");
+	AppendTo(file, counter);
+	AppendTo(file, "], ");
+	AppendTo(file, Order(g[1]));
+	AppendTo(file, " & ");
+	if IsPrimitive(g[1]) then
+	AppendTo(file, "Pr ");
+	fi;
+	if not (IsPrimitive(g[1])) and IsTransitive(g[1])  then
+	AppendTo(file, "IT ");
+	fi;
+	if not IsTransitive(g[1]) then
+	AppendTo(file, "II ");
+	fi;
+        AppendTo(file , "\\\\"  );
+	AppendTo(file, "\n");
+	for i in [1..Int(Size(L)/12)] do	
+	AppendTo(file, " & & ");
+	AppendTo(file, Size(g));
+	AppendTo(file, ", ");
+	AppendTo(file, List([2..Size(g)], i->Order(g[i])/Order(g[i-1])) );
+	AppendTo(file, " & D[");
+	AppendTo(file, 12*i);
+	AppendTo(file, "], ");
+	AppendTo(file, Order(M[12*i]));
+	AppendTo(file, " & ");
+	if IsPrimitive(M[12*i]) then
+	AppendTo(file, "Pr ");
+	fi;
+	if not (IsPrimitive(M[12*i])) and IsTransitive(M[12*i])  then
+	AppendTo(file, "IT ");
+	fi;
+	if not IsTransitive(M[12*i]) then
+	AppendTo(file, "II ");
+	fi;	
+	AppendTo(file, " & ");
+	L1:=ReducedTableOfMarksTimes(M[12*i], g);
+	AppendTo(file, L1[3]);
+	sum:=0;
+	for i in L1[1] do 
+	sum:=sum+i;
+	od;
+	for i in L1[2] do 
+	sum:=sum+i;
+	od;
+	AppendTo(file, " & ");
+	AppendTo(file, sum);
+	AppendTo(file, " & ");
+	AppendTo(file, L1[1]);
+	AppendTo(file, " & ");
+	AppendTo(file, L1[2]);
+	AppendTo(file, "\\\\");	
+	AppendTo(file, "\n");
+	od;
+od;
+
+end;;
+
 ###############################
 #Like ReducedTableOfMarks, but takes the times of all important operations and returns them in a list
 
@@ -179,15 +247,14 @@ ReducedTableOfMarksTimes:=function(H,Chain)
 	Fix:=[];
 	FixTimes:=[];
 	SplitTimes:=[];
-	t:=Runtime();
 	if n > 1 then
 	t:=Runtime();
 	Split:=List(RightCosets(Chain[n],Chain[n-1]), x->Representative(x));  #->Split contains now representatives for right cosets of Chain[n-1] 
 	t:=Runtime()-t;
 	Append(SplitTimes,[t]);
 	if n>2 then
-	for i in [2..n-1] do                                              
-	t:=Runtime();	
+	for i in [2..n-1] do  
+	t:=Runtime();                                            
 	Fix:=FindFixedPointsIn(Split,H,Chain[n+1-i]);
 	t:=Runtime()-t;
 	Append(FixTimes, [t]);
@@ -202,7 +269,7 @@ ReducedTableOfMarksTimes:=function(H,Chain)
 	Append(FixTimes, [t]);
 	fi;															
 	fi;
-	return [FixTimes, SplitTimes];
+	return [FixTimes, SplitTimes, Size(Fix)];
 end;;
 
 

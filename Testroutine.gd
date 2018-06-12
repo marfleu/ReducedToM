@@ -1,0 +1,10 @@
+DeclareGlobalFunction("CreateRandomChain");
+DeclareGlobalFunction("CreateCollectionOfChains");
+DeclareGlobalFunction("AreEqual");
+DeclareGlobalFunction("Testablauf");
+DeclareGlobalFunction("Testate");
+DeclareGlobalFunction("CollectGroupsOfSameType");
+DeclareGlobalFunction("CreateOutputForAnalysis");
+DeclareGlobalFunction("GroupPrinter");
+DeclareGlobalFunction("GroupPrinter2");
+DeclareGlobalFunction("ReducedTableOfMarksTimes");

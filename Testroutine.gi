@@ -1,4 +1,4 @@
-Read("~/Dokumente/Bachelorarbeit/Fixpunkte.g");
+
 ##############################
 #Creates randomly an Ascending Chain in a given group G
 CreateRandomChain:=function(G)
